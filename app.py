@@ -4,20 +4,40 @@ from fpdf import FPDF
 
 # 1. UI Setup
 st.set_page_config(page_title="VectorAtmos VCU Engine", layout="wide")
+
+# --- NEW: GRENADA CONTEXT POPUP ---
+@st.dialog("🇬🇩 Grenada Project Presets Loaded")
+def show_grenada_context():
+    st.write("Welcome to the VectorAtmos VCU Calculation Engine.")
+    st.write("The telemetry sliders have been pre-configured with parameters specific to the **Grenada Pilot Project**:")
+    st.markdown("- **Project Area:** 10,320 Hectares *(Represents ~30% of the island, targeting interior watersheds like Grand Etang)*")
+    st.markdown("- **Baseline Canopy:** 15.0 meters average")
+    st.markdown("- **Voluntary Market Price:** $22.00 / VCU")
+    st.info("You can adjust these sliders in the sidebar to stress-test the model's yield scenarios.")
+    if st.button("Start Simulation"):
+        st.session_state['popup_shown'] = True
+        st.rerun()
+
+# Trigger popup only on first load
+if 'popup_shown' not in st.session_state:
+    show_grenada_context()
+# ----------------------------------
+
 st.title("VectorAtmos dMRV: VCU & Revenue Engine")
 st.markdown("Interactive demonstration of the Verra VM0047 pipeline converting satellite telemetry into Verified Carbon Units (VCUs). **Hover over the (?) icon next to any metric to see the exact calculation.**")
 st.divider()
 
 # 2. Interactive Parameters (Sidebar with Context)
+st.sidebar.header("🇬🇩 Grenada Baseline Setup")
+st.sidebar.success("Presets configured for the Grenada pilot envelope (10,320 ha). Adjust sliders to simulate different topographical zones.")
+
 st.sidebar.header("Input Telemetry Parameters")
-st.sidebar.info("These physical metrics are typically derived from Google Earth Engine (Sentinel-1 SAR & GEDI LiDAR).")
 project_area = st.sidebar.slider("Project Area (Hectares)", 1000, 34400, 10320, 
-                                 help="The exact legal boundary secured in the government Memorandum of Agreement (MoA).")
+                                 help="Grenada Default: 10,320 ha. The exact legal boundary secured in the government Memorandum of Agreement (MoA).")
 canopy_height = st.sidebar.slider("Avg Predicted Canopy Height (meters)", 5.0, 35.0, 15.0, 
                                   help="Continuous canopy height predicted by the AI regressor across the target grid.")
 
 st.sidebar.header("Compliance Deductions")
-st.sidebar.info("These deductions isolate the true 'additionality' of the project to satisfy Verra methodology.")
 baseline_emissions = st.sidebar.slider("Dynamic Baseline (tCO2e/ha)", 0.0, 5.0, 1.0, 
                                        help="Carbon changes measured in a natural 'donor pool' to represent what would have happened without the project.")
 leakage = st.sidebar.slider("Leakage Deductions (tCO2e/ha)", 0.0, 5.0, 0.5, 
@@ -83,11 +103,11 @@ def create_pdf():
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", 'B', 16)
-    pdf.cell(0, 10, "VectorAtmos: VCU Calculation Prospectus", ln=True, align="C")
+    pdf.cell(0, 10, "VectorAtmos: Grenada VCU Prospectus", ln=True, align="C")
     pdf.ln(10)
     
     pdf.set_font("Arial", 'B', 12)
-    pdf.cell(0, 10, "1. Input Parameters", ln=True)
+    pdf.cell(0, 10, "1. Input Parameters (Grenada Presets)", ln=True)
     pdf.set_font("Arial", '', 12)
     pdf.cell(0, 10, f"Project Area: {project_area:,.0f} Hectares", ln=True)
     pdf.cell(0, 10, f"Avg Predicted Canopy Height: {canopy_height:.1f} meters", ln=True)
@@ -116,6 +136,6 @@ pdf_bytes = create_pdf()
 st.download_button(
     label="📄 Download PDF Summary",
     data=pdf_bytes,
-    file_name="VectorAtmos_VCU_Summary.pdf",
+    file_name="VectorAtmos_Grenada_Summary.pdf",
     mime="application/pdf"
 )
